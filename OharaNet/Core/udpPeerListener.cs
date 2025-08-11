@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OharaNet.Core
 {
-    internal class udpPeerListener
+    internal class UdpPeerListener
     {
         private readonly UdpClient? _udpClient;
         private readonly IPAddress? _multicastAddress;
@@ -18,7 +18,7 @@ namespace OharaNet.Core
         public event Action<string, IPEndPoint>? MessageReceived;
 
 
-        public udpPeerListener(string multicastAddress, int port)
+        public UdpPeerListener(string multicastAddress, int port)
         {
             _multicastAddress = IPAddress.Parse(multicastAddress);
             _port = port;
