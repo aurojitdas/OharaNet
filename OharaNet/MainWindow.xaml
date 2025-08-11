@@ -1,0 +1,479 @@
+﻿<Window x:Class="OharaNet.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OharaNet"
+        mc:Ignorable="d"
+        Title="OharaNet - P2P Chat" Height="800" Width="1200" MinHeight="600" MinWidth="900"
+        Background="#FF36393F">
+
+    <Window.Resources>
+        <!-- Dark Theme Colors -->
+        <SolidColorBrush x:Key="DarkBackground" Color="#FF36393F"/>
+        <SolidColorBrush x:Key="SidebarBackground" Color="#FF2F3136"/>
+        <SolidColorBrush x:Key="ChatBackground" Color="#FF40444B"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#B9BBBE"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#FF5865F2"/>
+        <SolidColorBrush x:Key="HoverColor" Color="#FF4F545C"/>
+        <SolidColorBrush x:Key="OnlineColor" Color="#FF3BA55D"/>
+
+        <!-- Button Styles -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Peer Item Style -->
+        <Style x:Key="PeerItem" TargetType="Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- Left Sidebar - Peers List -->
+            <ColumnDefinition Width="240" MinWidth="200"/>
+            <ColumnDefinition Width="2"/>
+            <!-- Main Chat Area -->
+            <ColumnDefinition Width="*" MinWidth="400"/>
+            <ColumnDefinition Width="2"/>
+            <!-- Right Sidebar - User Details -->
+            <ColumnDefinition Width="240" MinWidth="200"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Sidebar - Peers Panel -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBackground}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="60"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Border Grid.Row="0" Background="#FF27292E" Padding="16,12">
+                    <Grid>
+                        <TextBlock Text="{Binding NetworkTitle}" 
+                                   Foreground="{StaticResource TextPrimary}" 
+                                   FontWeight="SemiBold" 
+                                   FontSize="16"
+                                   VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource ModernButton}" 
+                                HorizontalAlignment="Right"
+                                Content="⚙️" 
+                                FontSize="14"
+                                ToolTip="Settings"/>
+                    </Grid>
+                </Border>
+
+                <!-- Peers List -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Online Peers Section -->
+                        <TextBlock Text="{Binding OnlinePeersHeader}" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12" 
+                                   FontWeight="SemiBold" 
+                                   Margin="16,16,16,8"/>
+
+                        <!-- Online Peers List -->
+                        <ItemsControl x:Name="OnlinePeersContainer" ItemsSource="{Binding OnlinePeers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource PeerItem}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="32"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Ellipse Grid.Column="0" Width="32" Height="32" Fill="{Binding AvatarColor}"/>
+                                            <TextBlock Grid.Column="0" Text="{Binding AvatarLetter}" 
+                                                       Foreground="{Binding AvatarTextColor}" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       FontWeight="Bold"/>
+
+                                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           Foreground="{StaticResource TextPrimary}" 
+                                                           FontSize="14" 
+                                                           FontWeight="Medium"/>
+                                                <TextBlock Text="{Binding IpAddress}" 
+                                                           Foreground="{StaticResource TextSecondary}" 
+                                                           FontSize="12"/>
+                                            </StackPanel>
+
+                                            <Ellipse Grid.Column="2" Width="12" Height="12" 
+                                                     Fill="{Binding StatusColor}" 
+                                                     VerticalAlignment="Top" 
+                                                     Margin="0,4,4,0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Offline Peers Section -->
+                        <TextBlock Text="{Binding OfflinePeersHeader}" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12" 
+                                   FontWeight="SemiBold" 
+                                   Margin="16,24,16,8"/>
+
+                        <!-- Offline Peers List -->
+                        <ItemsControl x:Name="OfflinePeersContainer" ItemsSource="{Binding OfflinePeers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource PeerItem}" Opacity="0.5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="32"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Ellipse Grid.Column="0" Width="32" Height="32" Fill="#FF747F8D"/>
+                                            <TextBlock Grid.Column="0" Text="{Binding AvatarLetter}" 
+                                                       Foreground="White" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       FontWeight="Bold"/>
+
+                                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           Foreground="{StaticResource TextSecondary}" 
+                                                           FontSize="14" 
+                                                           FontWeight="Medium"/>
+                                                <TextBlock Text="{Binding LastSeen}" 
+                                                           Foreground="{StaticResource TextSecondary}" 
+                                                           FontSize="12"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- User Status -->
+                <Border Grid.Row="2" Background="#FF27292E" Padding="8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Ellipse Grid.Column="0" Width="32" Height="32" Fill="{StaticResource AccentColor}"/>
+                        <TextBlock Grid.Column="0" Text="{Binding CurrentUser.AvatarLetter}" 
+                                   Foreground="White" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center" 
+                                   FontWeight="Bold"/>
+
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentUser.Name}" 
+                                       Foreground="{StaticResource TextPrimary}" 
+                                       FontSize="14" 
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding CurrentUser.Status}" 
+                                       Foreground="{StaticResource OnlineColor}" 
+                                       FontSize="12"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button Style="{StaticResource ModernButton}" Content="🔇" ToolTip="Mute"/>
+                            <Button Style="{StaticResource ModernButton}" Content="🎧" ToolTip="Deafen"/>
+                            <Button Style="{StaticResource ModernButton}" Content="⚙️" ToolTip="Settings"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Splitter 1 -->
+        <GridSplitter Grid.Column="1" Background="#FF27292E" HorizontalAlignment="Stretch"/>
+
+        <!-- Main Chat Area -->
+        <Border Grid.Column="2" Background="{StaticResource ChatBackground}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Chat Header -->
+                <Border Grid.Row="0" Background="#FF36393F" Padding="16,12" BorderBrush="#FF27292E" BorderThickness="0,0,0,1">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="#" Foreground="{StaticResource TextSecondary}" FontSize="20" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding CurrentChannel.Name}" Foreground="{StaticResource TextPrimary}" FontSize="16" FontWeight="SemiBold"/>
+                            <Rectangle Width="1" Height="20" Fill="{StaticResource TextSecondary}" Margin="12,0"/>
+                            <TextBlock Text="{Binding CurrentChannel.Description}" Foreground="{StaticResource TextSecondary}" FontSize="14"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource ModernButton}" Content="📞" ToolTip="Start Call"/>
+                            <Button Style="{StaticResource ModernButton}" Content="📹" ToolTip="Start Video"/>
+                            <Button Style="{StaticResource ModernButton}" Content="📌" ToolTip="Pinned Messages"/>
+                            <Button Style="{StaticResource ModernButton}" Content="👥" ToolTip="Show Member List"/>
+                            <TextBox x:Name="SearchTextBox" Width="200" Height="28" Background="#FF27292E" Foreground="{StaticResource TextPrimary}" 
+                                     BorderThickness="0" Padding="8,4" Text="{Binding SearchPlaceholder}" 
+                                     VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Messages Area -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16">
+                    <ItemsControl x:Name="MessagesContainer" ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Ellipse Grid.Column="0" Width="40" Height="40" Fill="{Binding AvatarColor}"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding AvatarLetter}" 
+                                               Foreground="{Binding AvatarTextColor}" 
+                                               HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center" 
+                                               FontWeight="Bold"/>
+
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <TextBlock Text="{Binding Username}" 
+                                                       Foreground="{StaticResource TextPrimary}" 
+                                                       FontWeight="SemiBold" 
+                                                       FontSize="14"/>
+                                            <TextBlock Text="{Binding Timestamp}" 
+                                                       Foreground="{StaticResource TextSecondary}" 
+                                                       FontSize="12" 
+                                                       Margin="8,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Content}" 
+                                                   Foreground="{StaticResource TextPrimary}" 
+                                                   TextWrapping="Wrap" 
+                                                   FontSize="14"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Message Input -->
+                <Border Grid.Row="2" Background="{StaticResource ChatBackground}" Padding="16">
+                    <Grid>
+                        <Border Background="#FF40444B" CornerRadius="8" Padding="12,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" Style="{StaticResource ModernButton}" Content="📎" ToolTip="Attach File"/>
+
+                                <TextBox x:Name="MessageInputTextBox" Grid.Column="1" 
+                                         Background="Transparent" 
+                                         Foreground="{StaticResource TextPrimary}" 
+                                         BorderThickness="0" 
+                                         Text="{Binding MessagePlaceholder}" 
+                                         VerticalAlignment="Center" 
+                                         Margin="8,0"/>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <Button Style="{StaticResource ModernButton}" Content="😊" ToolTip="Emoji"/>
+                                    <Button Style="{StaticResource ModernButton}" Content="🎁" ToolTip="Gift"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Splitter 2 -->
+        <GridSplitter Grid.Column="3" Background="#FF27292E" HorizontalAlignment="Stretch"/>
+
+        <!-- Right Sidebar - User Details -->
+        <Border Grid.Column="4" Background="{StaticResource SidebarBackground}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Selected User Profile -->
+                <Border Grid.Row="0" Background="#FF27292E" Padding="16">
+                    <StackPanel DataContext="{Binding SelectedUser}">
+                        <Ellipse Width="80" Height="80" Fill="{Binding AvatarColor}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding AvatarLetter}" 
+                                   Foreground="{Binding AvatarTextColor}" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center" 
+                                   FontWeight="Bold" 
+                                   FontSize="32" 
+                                   Margin="0,-56,0,0"/>
+
+                        <TextBlock Text="{Binding Name}" 
+                                   Foreground="{StaticResource TextPrimary}" 
+                                   FontSize="20" 
+                                   FontWeight="Bold" 
+                                   HorizontalAlignment="Center" 
+                                   Margin="0,16,0,4"/>
+
+                        <TextBlock Text="{Binding UserId}" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="14" 
+                                   HorizontalAlignment="Center"/>
+
+                        <Border Background="{Binding StatusColor}" 
+                                CornerRadius="12" 
+                                Padding="8,4" 
+                                HorizontalAlignment="Center" 
+                                Margin="0,8,0,0">
+                            <TextBlock Text="{Binding StatusText}" 
+                                       Foreground="White" 
+                                       FontSize="12" 
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- User Details -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16" DataContext="{Binding SelectedUser}">
+                        <!-- Connection Info -->
+                        <TextBlock Text="CONNECTION INFO" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12" 
+                                   FontWeight="SemiBold" 
+                                   Margin="0,0,0,8"/>
+
+                        <Border Background="#FF40444B" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="IP Address" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding IpAddress}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Port" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Port}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Protocol" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Protocol}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid>
+                                    <TextBlock Text="Latency" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Latency}" Foreground="{StaticResource OnlineColor}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Node Stats -->
+                        <TextBlock Text="NODE STATISTICS" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12" 
+                                   FontWeight="SemiBold" 
+                                   Margin="0,0,0,8"/>
+
+                        <Border Background="#FF40444B" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Uptime" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Uptime}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Messages Sent" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding MessagesSent}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Files Shared" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding FilesShared}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid>
+                                    <TextBlock Text="Data Transferred" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding DataTransferred}" Foreground="{StaticResource TextPrimary}" FontSize="12" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Actions -->
+                        <TextBlock Text="ACTIONS" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12" 
+                                   FontWeight="SemiBold" 
+                                   Margin="0,0,0,8"/>
+
+                        <StackPanel>
+                            <Button Style="{StaticResource ModernButton}" 
+                                    Background="#FF5865F2" 
+                                    Foreground="White" 
+                                    Content="Send Direct Message" 
+                                    Margin="0,0,0,8" 
+                                    Padding="12,8"/>
+
+                            <Button Style="{StaticResource ModernButton}" 
+                                    Background="#FF57F287" 
+                                    Foreground="White" 
+                                    Content="Start File Transfer" 
+                                    Margin="0,0,0,8" 
+                                    Padding="12,8"/>
+
+                            <Button Style="{StaticResource ModernButton}" 
+                                    Background="#FFFEE75C" 
+                                    Foreground="Black" 
+                                    Content="View Shared Files" 
+                                    Margin="0,0,0,8" 
+                                    Padding="12,8"/>
+
+                            <Button Style="{StaticResource ModernButton}" 
+                                    Background="#FFED4245" 
+                                    Foreground="White" 
+                                    Content="Block Peer" 
+                                    Padding="12,8"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
