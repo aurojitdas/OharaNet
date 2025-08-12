@@ -167,6 +167,12 @@ namespace OharaNet.ViewModels
 
                 _chatHistories[peerId].Add(chatMessage);
 
+                // If this is NOT the currently selected peer, mark as unread
+                if (_selectedPeerId != peerId && peer != null)
+                {
+                    peer.HasUnreadMessages = true;
+                }
+
                 // If this is the currently selected peer, update the UI
                 if (_selectedPeerId == peerId)
                 {
@@ -184,6 +190,12 @@ namespace OharaNet.ViewModels
             _currentChatClient = null;
 
             _selectedPeerId = peer.Name;
+
+            var peerInCollection = OnlinePeers.FirstOrDefault(p => p.Name == peer.Name);
+            if (peerInCollection != null)
+            {
+                peerInCollection.HasUnreadMessages = false;
+            }
 
             // Update selected user info for right panel
             SelectedUser = new UserInfo

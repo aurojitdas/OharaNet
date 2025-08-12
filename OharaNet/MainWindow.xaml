@@ -9,6 +9,7 @@
         Background="#FF36393F">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <!-- Dark Theme Colors -->
         <SolidColorBrush x:Key="DarkBackground" Color="#FF36393F"/>
         <SolidColorBrush x:Key="SidebarBackground" Color="#FF2F3136"/>
@@ -118,27 +119,40 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
+                                            <!-- Avatar -->
                                             <Ellipse Grid.Column="0" Width="32" Height="32" Fill="{Binding AvatarColor}"/>
                                             <TextBlock Grid.Column="0" Text="{Binding AvatarLetter}" 
-                                                       Foreground="{Binding AvatarTextColor}" 
-                                                       HorizontalAlignment="Center" 
-                                                       VerticalAlignment="Center" 
-                                                       FontWeight="Bold"/>
+                               Foreground="{Binding AvatarTextColor}" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center" 
+                               FontWeight="Bold"/>
 
+                                            <!-- Peer Info -->
                                             <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" 
-                                                           Foreground="{StaticResource TextPrimary}" 
-                                                           FontSize="14" 
-                                                           FontWeight="Medium"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Name}" 
+                                       Foreground="{StaticResource TextPrimary}" 
+                                       FontSize="14" 
+                                       FontWeight="Medium"/>
+
+                                                    <!-- Notification indicator -->
+                                                    <Ellipse Width="8" Height="8" 
+                                     Fill="#FFED4245" 
+                                     Margin="8,0,0,0"
+                                     VerticalAlignment="Center"
+                                     Visibility="{Binding HasUnreadMessages, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                </StackPanel>
+
                                                 <TextBlock Text="{Binding IpAddress}" 
-                                                           Foreground="{StaticResource TextSecondary}" 
-                                                           FontSize="12"/>
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12"/>
                                             </StackPanel>
 
+                                            <!-- Status indicator -->
                                             <Ellipse Grid.Column="2" Width="12" Height="12" 
-                                                     Fill="{Binding StatusColor}" 
-                                                     VerticalAlignment="Top" 
-                                                     Margin="0,4,4,0"/>
+                             Fill="{Binding StatusColor}" 
+                             VerticalAlignment="Top" 
+                             Margin="0,4,4,0"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

@@ -18,6 +18,7 @@ namespace OharaNet.Data
         private string _statusColor = "";
         private string _lastSeen = "";
         private bool _isOnline = false;
+        private bool _hasUnreadMessages = false;
 
         public string Name
         {
@@ -65,6 +66,12 @@ namespace OharaNet.Data
         {
             get => _isOnline;
             set { _isOnline = value; OnPropertyChanged(); }
+        }
+
+        public bool HasUnreadMessages
+        {
+            get => _hasUnreadMessages;
+            set { _hasUnreadMessages = value; OnPropertyChanged(); }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
