@@ -15,8 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace OharaNet
-{   
-
+{
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -31,209 +30,91 @@ namespace OharaNet
             DataContext = _viewModel;
 
             InitializeData();
+            SetupEventHandlers();
+        }
+
+        private void SetupEventHandlers()
+        {
+            // Handle peer selection clicks
+            OnlinePeersContainer.MouseLeftButtonUp += OnlinePeersContainer_MouseLeftButtonUp;
+
+            // Handle message input
+            MessageInputTextBox.KeyDown += MessageInputTextBox_KeyDown;
+
+            // Handle placeholder text
+            MessageInputTextBox.GotFocus += MessageInputTextBox_GotFocus;
+            MessageInputTextBox.LostFocus += MessageInputTextBox_LostFocus;
+        }
+
+        private async void OnlinePeersContainer_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // Find the clicked peer
+            var element = e.OriginalSource as FrameworkElement;
+            while (element != null && !(element.DataContext is Peer))
+            {
+                element = element.Parent as FrameworkElement;
+            }
+
+            if (element?.DataContext is Peer clickedPeer)
+            {
+                await _viewModel.SelectPeerAsync(clickedPeer);
+            }
+        }
+
+        private async void MessageInputTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && !string.IsNullOrWhiteSpace(MessageInputTextBox.Text))
+            {
+                string message = MessageInputTextBox.Text.Trim();
+
+                if (message != _viewModel.MessagePlaceholder)
+                {
+                    await _viewModel.SendMessageAsync(message);
+                    MessageInputTextBox.Text = "";
+                }
+            }
+        }
+
+        private void MessageInputTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (MessageInputTextBox.Text == _viewModel.MessagePlaceholder)
+            {
+                MessageInputTextBox.Text = "";
+                MessageInputTextBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            }
+        }
+
+        private void MessageInputTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(MessageInputTextBox.Text))
+            {
+                MessageInputTextBox.Text = _viewModel.MessagePlaceholder;
+                MessageInputTextBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B9BBBE"));
+            }
         }
 
         private void InitializeData()
         {
-            // Initialize current user
-            _viewModel.CurrentUser = new UserInfo
-            {
-                Name = "Your_Node",
-                Status = "Online",
-                AvatarLetter = "Y",
-                AvatarColor = "#FF5865F2",
-                AvatarTextColor = "White"
-            };
-
             // Initialize current channel
             _viewModel.CurrentChannel = new ChannelInfo
             {
                 Name = "general-chat",
-                Description = "P2P Network Chat"
+                Description = "Select a peer to start chatting"
             };
 
-            // Initialize online peers
-            _viewModel.OnlinePeers.Add(new Peer
-            {
-                Name = "Alice_Node",
-                IpAddress = "192.168.1.100",
-                AvatarLetter = "A",
-                AvatarColor = "#FF5865F2",
-                AvatarTextColor = "White",
-                StatusColor = "#FF3BA55D",
-                IsOnline = true
-            });
-
-            _viewModel.OnlinePeers.Add(new Peer
-            {
-                Name = "Bob_Crypto",
-                IpAddress = "10.0.0.25",
-                AvatarLetter = "B",
-                AvatarColor = "#FF57F287",
-                AvatarTextColor = "White",
-                StatusColor = "#FF3BA55D",
-                IsOnline = true
-            });
-
-            _viewModel.OnlinePeers.Add(new Peer
-            {
-                Name = "Charlie_Dev",
-                IpAddress = "172.16.0.5",
-                AvatarLetter = "C",
-                AvatarColor = "#FFFEE75C",
-                AvatarTextColor = "Black",
-                StatusColor = "#FFFAA61A",
-                IsOnline = true
-            });
-
-            // Initialize offline peers
-            _viewModel.OfflinePeers.Add(new Peer
-            {
-                Name = "Dave_Offline",
-                LastSeen = "Last seen 2h ago",
-                AvatarLetter = "D",
-                AvatarColor = "#FF747F8D",
-                AvatarTextColor = "White",
-                IsOnline = false
-            });
-
-            // Initialize sample messages
+            // Welcome message
             _viewModel.Messages.Add(new ChatMessage
             {
-                Username = "Alice_Node",
-                Content = "Hey everyone! The P2P network is running smoothly. Anyone want to test file sharing?",
-                Timestamp = "Today at 2:30 PM",
-                AvatarLetter = "A",
-                AvatarColor = "#FF5865F2",
-                AvatarTextColor = "White"
-            });
-
-            _viewModel.Messages.Add(new ChatMessage
-            {
-                Username = "Bob_Crypto",
-                Content = "I'm ready to test. My node has been stable for the past 24 hours.",
-                Timestamp = "Today at 2:32 PM",
-                AvatarLetter = "B",
-                AvatarColor = "#FF57F287",
-                AvatarTextColor = "White"
-            });
-
-            _viewModel.Messages.Add(new ChatMessage
-            {
-                Username = "Your_Node",
-                Content = "Great! Let me know when you're ready to start the file transfer test.",
-                Timestamp = "Today at 2:35 PM",
-                AvatarLetter = "Y",
-                AvatarColor = "#FF5865F2",
-                AvatarTextColor = "White"
-            });
-
-            // Set selected user (default to Alice)
-            _viewModel.SelectedUser = new UserInfo
-            {
-                Name = "Alice_Node",
-                UserId = "alice#1234",
-                AvatarLetter = "A",
-                AvatarColor = "#FF5865F2",
-                AvatarTextColor = "White",
-                StatusColor = "#FF3BA55D",
-                StatusText = "🟢 Online",
-                IpAddress = "192.168.1.100",
-                Port = "8080",
-                Protocol = "TCP/UDP",
-                Latency = "23ms",
-                Uptime = "2d 14h 32m",
-                MessagesSent = "1,247",
-                FilesShared = "23",
-                DataTransferred = "2.4 GB"
-            };
-
-            // Update peer counts
-            _viewModel.UpdateOnlinePeersCount();
-            _viewModel.UpdateOfflinePeersCount();
-        }
-
-        // Public methods to update data from your P2P network logic
-        public void AddOnlinePeer(string name, string ipAddress, string avatarLetter = "", string avatarColor = "#FF5865F2")
-        {
-            var peer = new Peer
-            {
-                Name = name,
-                IpAddress = ipAddress,
-                AvatarLetter = string.IsNullOrEmpty(avatarLetter) ? name.Substring(0, 1).ToUpper() : avatarLetter,
-                AvatarColor = avatarColor,
-                AvatarTextColor = "White",
-                StatusColor = "#FF3BA55D",
-                IsOnline = true
-            };
-
-            _viewModel.OnlinePeers.Add(peer);
-            _viewModel.UpdateOnlinePeersCount();
-        }
-
-        public void RemoveOnlinePeer(string name)
-        {
-            var peer = _viewModel.OnlinePeers.FirstOrDefault(p => p.Name == name);
-            if (peer != null)
-            {
-                _viewModel.OnlinePeers.Remove(peer);
-                _viewModel.UpdateOnlinePeersCount();
-            }
-        }
-
-        public void AddOfflinePeer(string name, string lastSeen, string avatarLetter = "")
-        {
-            var peer = new Peer
-            {
-                Name = name,
-                LastSeen = lastSeen,
-                AvatarLetter = string.IsNullOrEmpty(avatarLetter) ? name.Substring(0, 1).ToUpper() : avatarLetter,
-                AvatarColor = "#FF747F8D",
-                AvatarTextColor = "White",
-                IsOnline = false
-            };
-
-            _viewModel.OfflinePeers.Add(peer);
-            _viewModel.UpdateOfflinePeersCount();
-        }
-
-        public void AddMessage(string username, string content, string avatarLetter = "", string avatarColor = "#FF5865F2")
-        {
-            var message = new ChatMessage
-            {
-                Username = username,
-                Content = content,
+                Username = "System",
+                Content = "Welcome to OharaNet! Click on a peer to start chatting.",
                 Timestamp = DateTime.Now.ToString("'Today at' h:mm tt"),
-                AvatarLetter = string.IsNullOrEmpty(avatarLetter) ? username.Substring(0, 1).ToUpper() : avatarLetter,
-                AvatarColor = avatarColor,
+                AvatarLetter = "S",
+                AvatarColor = "#FF747F8D",
                 AvatarTextColor = "White"
-            };
+            });
 
-            _viewModel.Messages.Add(message);
-        }
-
-        public void UpdateSelectedUser(UserInfo userInfo)
-        {
-            _viewModel.SelectedUser = userInfo;
-        }
-
-        public void UpdateCurrentUser(string name, string status = "Online")
-        {
-            _viewModel.CurrentUser.Name = name;
-            _viewModel.CurrentUser.Status = status;
-            _viewModel.CurrentUser.AvatarLetter = name.Substring(0, 1).ToUpper();
-        }
-
-        public void UpdateNetworkTitle(string title)
-        {
-            _viewModel.NetworkTitle = title;
-        }
-
-        public void UpdateCurrentChannel(string name, string description)
-        {
-            _viewModel.CurrentChannel.Name = name;
-            _viewModel.CurrentChannel.Description = description;
-            _viewModel.MessagePlaceholder = $"Message #{name}";
+            _viewModel.UpdateOnlinePeersCount();
+            _viewModel.UpdateOfflinePeersCount();
         }
     }
 }

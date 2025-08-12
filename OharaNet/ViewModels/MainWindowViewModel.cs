@@ -26,6 +26,11 @@ namespace OharaNet.ViewModels
         private readonly string _myPeerId;
         private readonly ConcurrentDictionary<string, PeerInfo> _discoveredPeers = new();
 
+        // Simple chat management
+        private readonly Dictionary<string, List<ChatMessage>> _chatHistories = new();
+        private TcpChatClient? _currentChatClient;
+        private string _selectedPeerId = "";
+
         private string _networkTitle = "P2P Network";
         private string _onlinePeersHeader = "ONLINE PEERS — 0";
         private string _offlinePeersHeader = "OFFLINE PEERS — 0";
@@ -125,9 +130,146 @@ namespace OharaNet.ViewModels
             _udpListener.Start();
             _udpAnnouncer.Start();
 
+            // Initialize current user info
+            CurrentUser = new UserInfo
+            {
+                Name = _myPeerId,
+                Status = "Online",
+                AvatarLetter = _myPeerId.Substring(0, 1).ToUpper(),
+                AvatarColor = "#FF5865F2",
+                AvatarTextColor = "White"
+            };
+
+        }
+
+        // Handle incoming messages from TCP server
+        private void OnTcpMessageReceived(string peerId, string message)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Create chat history for this peer if it doesn't exist
+                if (!_chatHistories.ContainsKey(peerId))
+                {
+                    _chatHistories[peerId] = new List<ChatMessage>();
+                }
+
+                // Add message to history
+                var peer = OnlinePeers.FirstOrDefault(p => p.Name == peerId);
+                var chatMessage = new ChatMessage
+                {
+                    Username = peerId,
+                    Content = message,
+                    Timestamp = DateTime.Now.ToString("'Today at' h:mm tt"),
+                    AvatarLetter = peerId.Substring(0, 1).ToUpper(),
+                    AvatarColor = peer?.AvatarColor ?? "#FF5865F2",
+                    AvatarTextColor = "White"
+                };
+
+                _chatHistories[peerId].Add(chatMessage);
+
+                // If this is the currently selected peer, update the UI
+                if (_selectedPeerId == peerId)
+                {
+                    Messages.Add(chatMessage);
+                }
+            });
         }
 
 
+        // Select a peer and load chat history
+        public async Task SelectPeerAsync(Peer peer)
+        {
+            // Disconnect from previous peer
+            _currentChatClient?.Disconnect();
+            _currentChatClient = null;
+
+            _selectedPeerId = peer.Name;
+
+            // Update selected user info for right panel
+            SelectedUser = new UserInfo
+            {
+                Name = peer.Name,
+                UserId = $"{peer.Name.ToLower()}#{Random.Shared.Next(1000, 9999)}",
+                AvatarLetter = peer.AvatarLetter,
+                AvatarColor = peer.AvatarColor,
+                AvatarTextColor = peer.AvatarTextColor,
+                StatusColor = peer.StatusColor,
+                StatusText = peer.IsOnline ? "🟢 Online" : "🔴 Offline",
+                IpAddress = peer.IpAddress,
+                Port = "8080",
+                Protocol = "TCP/UDP",
+                Latency = "N/A",
+                Uptime = "N/A",
+                MessagesSent = "0",
+                FilesShared = "0",
+                DataTransferred = "0 B"
+            };
+
+            // Update channel info
+            CurrentChannel = new ChannelInfo
+            {
+                Name = $"chat-{peer.Name}",
+                Description = $"Direct message with {peer.Name}"
+            };
+            MessagePlaceholder = $"Message @{peer.Name}";
+
+            // Load chat history
+            Messages.Clear();
+            if (_chatHistories.ContainsKey(peer.Name))
+            {
+                foreach (var msg in _chatHistories[peer.Name])
+                {
+                    Messages.Add(msg);
+                }
+            }
+
+            // Connect to peer
+            if (_discoveredPeers.ContainsKey(peer.Name))
+            {
+                var peerInfo = _discoveredPeers[peer.Name];
+                _currentChatClient = new TcpChatClient(_myPeerId);
+
+                bool connected = await _currentChatClient.ConnectAsync(peerInfo.IpAddress.ToString(), peerInfo.TcpPort);
+                if (connected)
+                {
+                    Console.WriteLine($"Connected to {peer.Name}");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to connect to {peer.Name}");
+                }
+            }
+        }
+
+        // Send message to selected peer
+        public async Task SendMessageAsync(string content)
+        {
+            if (_currentChatClient != null && _currentChatClient.IsConnected && !string.IsNullOrEmpty(_selectedPeerId))
+            {
+                // Send to peer
+                await _currentChatClient.SendMessageAsync(content);
+
+                // Add to our local chat history
+                if (!_chatHistories.ContainsKey(_selectedPeerId))
+                {
+                    _chatHistories[_selectedPeerId] = new List<ChatMessage>();
+                }
+
+                var myMessage = new ChatMessage
+                {
+                    Username = _myPeerId,
+                    Content = content,
+                    Timestamp = DateTime.Now.ToString("'Today at' h:mm tt"),
+                    AvatarLetter = _myPeerId.Substring(0, 1).ToUpper(),
+                    AvatarColor = CurrentUser.AvatarColor,
+                    AvatarTextColor = "White"
+                };
+
+                _chatHistories[_selectedPeerId].Add(myMessage);
+                Messages.Add(myMessage);
+            }
+        }
+        // Handle UDP peer discovery
         private void OnUdpMessageReceived(string message, IPEndPoint senderEndPoint)
         {
             string[] parts = message.Split('|');
