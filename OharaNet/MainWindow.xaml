@@ -228,9 +228,7 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <Button Style="{StaticResource ModernButton}" Content="🔇" ToolTip="Mute"/>
-                            <Button Style="{StaticResource ModernButton}" Content="🎧" ToolTip="Deafen"/>
-                            <Button Style="{StaticResource ModernButton}" Content="⚙️" ToolTip="Settings"/>
+                            
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -264,9 +262,7 @@
                             <Button Style="{StaticResource ModernButton}" Content="📹" ToolTip="Start Video"/>
                             <Button Style="{StaticResource ModernButton}" Content="📌" ToolTip="Pinned Messages"/>
                             <Button Style="{StaticResource ModernButton}" Content="👥" ToolTip="Show Member List"/>
-                            <TextBox x:Name="SearchTextBox" Width="200" Height="28" Background="#FF27292E" Foreground="{StaticResource TextPrimary}" 
-                                     BorderThickness="0" Padding="8,4" Text="{Binding SearchPlaceholder}" 
-                                     VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            
                         </StackPanel>
                     </Grid>
                 </Border>
