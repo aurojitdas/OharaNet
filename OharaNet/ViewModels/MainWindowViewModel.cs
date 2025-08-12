@@ -125,7 +125,7 @@ namespace OharaNet.ViewModels
             _udpListener = new UdpPeerListener(MulticastAddress, UdpPort);
             _udpAnnouncer = new UdpPeerAnnouncer(MulticastAddress, UdpPort, _myPeerId, _tcpServer.ListeningPort, AnnouncementInterval);
             _udpListener.MessageReceived += OnUdpMessageReceived;
-
+            _tcpServer.MessageReceived += OnTcpMessageReceived;
 
             _udpListener.Start();
             _udpAnnouncer.Start();
