@@ -179,19 +179,20 @@
 
                                             <Ellipse Grid.Column="0" Width="32" Height="32" Fill="#FF747F8D"/>
                                             <TextBlock Grid.Column="0" Text="{Binding AvatarLetter}" 
-                                                       Foreground="White" 
-                                                       HorizontalAlignment="Center" 
-                                                       VerticalAlignment="Center" 
-                                                       FontWeight="Bold"/>
+                               Foreground="White" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center" 
+                               FontWeight="Bold"/>
 
                                             <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}" 
-                                                           Foreground="{StaticResource TextSecondary}" 
-                                                           FontSize="14" 
-                                                           FontWeight="Medium"/>
-                                                <TextBlock Text="{Binding LastSeen}" 
-                                                           Foreground="{StaticResource TextSecondary}" 
-                                                           FontSize="12"/>
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="14" 
+                                   FontWeight="Medium"/>
+                                                <!-- Show LastSeenDisplay instead of hardcoded text -->
+                                                <TextBlock Text="{Binding LastSeenDisplay}" 
+                                   Foreground="{StaticResource TextSecondary}" 
+                                   FontSize="12"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

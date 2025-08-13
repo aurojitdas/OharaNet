@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-
+using System.Windows.Threading;
 namespace OharaNet.ViewModels
 {
     public class MainWindowViewModel : INotifyPropertyChanged
@@ -25,6 +25,7 @@ namespace OharaNet.ViewModels
         private readonly TcpChatServer _tcpServer;
         private readonly string _myPeerId;
         private readonly ConcurrentDictionary<string, PeerInfo> _discoveredPeers = new();
+        private readonly DispatcherTimer _peerHealthTimer;
 
         // Simple chat management
         private readonly Dictionary<string, List<ChatMessage>> _chatHistories = new();
@@ -139,6 +140,12 @@ namespace OharaNet.ViewModels
                 AvatarColor = "#FF5865F2",
                 AvatarTextColor = "White"
             };
+
+            // Initialize Timer for peer health checks
+            _peerHealthTimer = new DispatcherTimer();
+            _peerHealthTimer.Interval = TimeSpan.FromSeconds(5); // Check every 5 seconds
+            _peerHealthTimer.Tick += PeerHealthTimer_Tick;
+            _peerHealthTimer.Start();
 
         }
 
@@ -310,14 +317,59 @@ namespace OharaNet.ViewModels
                                 IsOnline = true,
                                 StatusColor = "#FF3BA55D", // Green for online
                                 AvatarLetter = receivedPeerId.Substring(0, 1).ToUpper(),
-                                AvatarColor = GetRandomColorForPeer(receivedPeerId)
+                                AvatarColor = GetRandomColorForPeer(receivedPeerId),
+                                LastSeen = DateTime.Now
                             };
 
                             OnlinePeers.Add(newPeer);
                             UpdateOnlinePeersCount();
                         }
+                        else
+                        {
+                            // Update existing peer's info
+                            existingPeer.LastSeen = DateTime.Now;
+                            if (!existingPeer.IsOnline)
+                            {
+                                existingPeer.IsOnline = true;
+                                existingPeer.StatusColor = "#FF3BA55D";
+
+                                // Move from offline to online list
+                                OfflinePeers.Remove(existingPeer);
+                                OnlinePeers.Add(existingPeer);
+
+                                UpdateOnlinePeersCount();
+                                UpdateOfflinePeersCount();
+                            }
+                        }
                     });
                 }
+            }
+        }
+
+        // Timer to check peer health and update UI
+        private void PeerHealthTimer_Tick(object? sender, EventArgs e)
+        {
+            // Find peers we haven't heard from in over 15 seconds
+            var stalePeers = OnlinePeers
+                .Where(p => DateTime.Now.Subtract(p.LastSeen).TotalSeconds > 15)
+                .ToList(); // Using ToList() to avoid issues with modifying the collection while looping
+
+            foreach (var peer in stalePeers)
+            {
+                // Mark them as offline
+                peer.IsOnline = false;
+                peer.StatusColor = "#FF747F8D"; 
+
+                // Move them from the Online list to the Offline list
+                OnlinePeers.Remove(peer);
+                OfflinePeers.Add(peer);
+                
+                UpdateOnlinePeersCount();
+                UpdateOfflinePeersCount();
+            }
+            foreach (var offlinePeer in OfflinePeers)
+            {
+                offlinePeer.OnPropertyChanged(nameof(offlinePeer.LastSeenDisplay));
             }
         }
 

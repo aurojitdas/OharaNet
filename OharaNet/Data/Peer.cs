@@ -16,9 +16,9 @@ namespace OharaNet.Data
         private string _avatarColor = "";
         private string _avatarTextColor = "White";
         private string _statusColor = "";
-        private string _lastSeen = "";
         private bool _isOnline = false;
         private bool _hasUnreadMessages = false;
+        private DateTime _lastSeen = DateTime.Now;
 
         public string Name
         {
@@ -56,12 +56,6 @@ namespace OharaNet.Data
             set { _statusColor = value; OnPropertyChanged(); }
         }
 
-        public string LastSeen
-        {
-            get => _lastSeen;
-            set { _lastSeen = value; OnPropertyChanged(); }
-        }
-
         public bool IsOnline
         {
             get => _isOnline;
@@ -74,8 +68,39 @@ namespace OharaNet.Data
             set { _hasUnreadMessages = value; OnPropertyChanged(); }
         }
 
+        public DateTime LastSeen
+        {
+            get => _lastSeen;
+            set
+            {
+                _lastSeen = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(LastSeenDisplay)); // Notify UI that display text changed
+            }
+        }
+
+        public string LastSeenDisplay
+        {
+            get
+            {
+                if (IsOnline)
+                    return "Online";
+
+                var timeDiff = DateTime.Now.Subtract(LastSeen);
+
+                if (timeDiff.TotalMinutes < 1)
+                    return "Last seen just now";
+                else if (timeDiff.TotalMinutes < 60)
+                    return $"Last seen {(int)timeDiff.TotalMinutes}m ago";
+                else if (timeDiff.TotalHours < 24)
+                    return $"Last seen {(int)timeDiff.TotalHours}h ago";
+                else
+                    return $"Last seen {(int)timeDiff.TotalDays}d ago";
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        public virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
